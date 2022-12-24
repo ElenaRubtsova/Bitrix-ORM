@@ -1,5 +1,5 @@
 <?php
-namespace Bitrix\Task;
+namespace ORM;
 
 use Bitrix\Main\Localization\Loc,
 	Bitrix\Main\ORM\Data\DataManager,
@@ -9,7 +9,7 @@ use Bitrix\Main\Localization\Loc,
 	Bitrix\Main\ORM\Fields\Validators\LengthValidator;
 
 Loc::loadMessages(__FILE__);
-echo __FILE__;
+//echo __FILE__;
 /**
  * Class TaskTable
  * 
@@ -22,7 +22,7 @@ echo __FILE__;
  * <li> STATUS_ID int mandatory
  * </ul>
  *
- * @package Bitrix\Task
+ * @package ORM
  **/
 
 class TaskTable extends DataManager

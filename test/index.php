@@ -1,9 +1,9 @@
-<?require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php");
+<?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
-use Bitrix\Task\TaskTable;
+use ORM\TaskTable;
 $obj = new TaskTable();
 echo $obj->getTableName();
-var_dump($obj->getMap());
+//var_dump($obj->getMap());
 //$map = TaskTable::getTableName();
 //var_dump($map);
 ?>
