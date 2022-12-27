@@ -50,33 +50,66 @@ $entity = Bitrix\Main\ORM\Entity::compileEntity(
 );
 
 // создаем объект Query. В качестве параметра он принимает объект сущности, относительно которой мы строим запрос
-$query = new Entity\Query(ORM\ClientTable::getEntity());
+$query = new Entity\Query(ORM\TaskTable::getEntity());
 $query
-    // поле element как ссылка на таблицу px_task
-    ->registerRuntimeField("task", array(
-            // тип - сущность ElementTable
-            "data_type" => "ORM\TaskTable",
-            // обратите внимание, что this.ID относится к таблице, относительно которой строится запрос
-            // т.е. px_client.ID = px_task.CLIENT_ID
-            'reference' => array('=this.ID' => 'ref.CLIENT_ID'),
-            'join_type' => 'inner',
+    ->registerRuntimeField("client", array(
+            "data_type" => "ORM\ClientTable",
+            'reference' => [
+                '=this.CLIENT_ID' => 'ref.ID',
+            ],
+            'join_type' => 'INNER',
         )
     )
     ->registerRuntimeField("status", array(
             "data_type" => "ORM\StatusTable",
-            'reference' => array('=task.STATUS_ID' => 'ref.ID'),
+            'reference' => array(
+                '=this.STATUS_ID' => 'ref.ID',
+                //'=ref.CODE' => new Bitrix\Main\DB\SqlExpression('?', 'F'),
+            ),
+            'join_type' => 'INNER',
         )
     )
-    //->setSelect(array("ID", "NAME", "task", "task.NAME", "status.NAME"))
-    ->setSelect(array("IF(ID>1,ID,0)", "NAME", "task", "task.NAME", "status.NAME"))
-    //->setFilter(array("<ID" => 100))
-    ->setOrder(array("ID" => "ASC"))
-    /*->registerRuntimeField(new Reference(
-        'FIELD',
-        $var,
-        Join::on('this.ID', 'ref.CLIENT_ID')
-    ))*///new style (d7)
+    ->registerRuntimeField("cnt(task_ID)", array(
+            "data_type" => "integer",
+            "expression" => array("COUNT(%s)", "ID"),
+        )
+    )
+    ->registerRuntimeField("sum(task_PRICE)_P", array(
+            "data_type" => "float",
+            //"expression" => array("sum(%s)", "PRICE"),
+            'expression' => ['IF(%s=\'P\',SUM(%s),0)','status.CODE' ,'PRICE']
+            //"filter" => array("=status.CODE"=>'F')
+        )
+    )
+    ->registerRuntimeField("sum(task_PRICE)_F", array(
+            "data_type" => "float",
+            //"expression" => array("sum(%s)", "PRICE"),
+            'expression' => ['IF(%s=\'F\',SUM(%s),0)','status.CODE' ,'PRICE']
+            //"filter" => array("=status.CODE"=>'F')
+        )
+    )
+    ->setSelect(array("CLIENT_ID", "client.NAME", "sum(task_PRICE)_P", "sum(task_PRICE)_F", "cnt(task_ID)"/*, "STATUS_ID", "status.NAME"*/))
+    ->setGroup(array("CLIENT_ID","STATUS_ID","client.NAME"))
+    ->setFilter(array("=CLIENT_ID" => 1))
+    ->setOrder(array("CLIENT_ID" => "ASC"))
     ->setLimit(10);
+//query2
+//->setGroup(array("CLIENT_ID","STATUS_ID","client.NAME","sum(task_PRICE)_P","sum(task_PRICE)_F","cnt(task_ID)"))
+//т.к. здесь оно будет уже не вычислчяемым SUM("sum(task_PRICE)_F")
+$subQuery
+    ->registerRuntimeField("sum(task_PRICE)_F_all", array(
+            "data_type" => "float",
+            //"expression" => array("sum(%s)", "PRICE"),
+            'expression' => ['SUM(%s)', 'sum(task_PRICE)_F']
+        )
+    )
+    ->registerRuntimeField("sum(task_PRICE)_P_all", array(
+            "data_type" => "float",
+            //"expression" => array("sum(%s)", "PRICE"),
+            'expression' => ['SUM(%s)', 'sum(task_PRICE)_P']
+        )
+    )
+;
 $result = $query->exec();
 var_dump($result->fetchAll());
 
