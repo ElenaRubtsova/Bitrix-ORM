@@ -64,7 +64,6 @@ $query
             "data_type" => "ORM\StatusTable",
             'reference' => array(
                 '=this.STATUS_ID' => 'ref.ID',
-                //'=ref.CODE' => new Bitrix\Main\DB\SqlExpression('?', 'F'),
             ),
             'join_type' => 'INNER',
         )
@@ -76,16 +75,12 @@ $query
     )
     ->registerRuntimeField("sum(task_PRICE)_P", array(
             "data_type" => "float",
-            //"expression" => array("sum(%s)", "PRICE"),
             'expression' => ['IF(%s=\'P\',SUM(%s),0)','status.CODE' ,'PRICE']
-            //"filter" => array("=status.CODE"=>'F')
         )
     )
     ->registerRuntimeField("sum(task_PRICE)_F", array(
             "data_type" => "float",
-            //"expression" => array("sum(%s)", "PRICE"),
             'expression' => ['IF(%s=\'F\',SUM(%s),0)','status.CODE' ,'PRICE']
-            //"filter" => array("=status.CODE"=>'F')
         )
     )
     ->setSelect(array("CLIENT_ID", "client.NAME", "sum(task_PRICE)_P", "sum(task_PRICE)_F", "cnt(task_ID)"/*, "STATUS_ID", "status.NAME"*/))
@@ -99,13 +94,11 @@ $query
 $subQuery
     ->registerRuntimeField("sum(task_PRICE)_F_all", array(
             "data_type" => "float",
-            //"expression" => array("sum(%s)", "PRICE"),
             'expression' => ['SUM(%s)', 'sum(task_PRICE)_F']
         )
     )
     ->registerRuntimeField("sum(task_PRICE)_P_all", array(
             "data_type" => "float",
-            //"expression" => array("sum(%s)", "PRICE"),
             'expression' => ['SUM(%s)', 'sum(task_PRICE)_P']
         )
     )
