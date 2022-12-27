@@ -14,7 +14,7 @@ use Bitrix\Main\Entity,
 //\Pixelplus\OrmAnnotations\Handlers::registerHandler();
 
 // создаём сущность для нашего запроса, в которой будет храниться результат
-$fields = array(
+/*$fields = array(
     new IntegerField(
         'ID', [
             'title' => 'ID клиента',
@@ -44,10 +44,10 @@ $fields = array(
 $entity = Bitrix\Main\ORM\Entity::compileEntity(
     "ResultTable",
     $fields, [
-        'namespace' => 'AlexeyGfi',
-        'table_name' => $dbTableName,
+        'namespace' => 'ORM/Results',
+        'table_name' => 'r_task_status_client',
     ]
-);
+);*/
 
 // создаем объект Query. В качестве параметра он принимает объект сущности, относительно которой мы строим запрос
 $query = new Entity\Query(ORM\TaskTable::getEntity());
@@ -88,10 +88,20 @@ $query
     ->setFilter(array("=CLIENT_ID" => 1))
     ->setOrder(array("CLIENT_ID" => "ASC"))
     ->setLimit(10);
+$result = $query->exec();
+var_dump($result->fetchAll());
 //query2
-//->setGroup(array("CLIENT_ID","STATUS_ID","client.NAME","sum(task_PRICE)_P","sum(task_PRICE)_F","cnt(task_ID)"))
+//->setGroup(array("CLIENT_ID","client.NAME","sum(task_PRICE)_P","sum(task_PRICE)_F","cnt(task_ID)"))
 //т.к. здесь оно будет уже не вычислчяемым SUM("sum(task_PRICE)_F")
-$subQuery
+//$querySql = $query->getQuery();
+$outerQuery = new Entity\Query(Bitrix\Main\ORM\Entity::getInstanceByQuery($query));
+//$outerQuery->dump();
+$outerQuery
+    ->registerRuntimeField("cnt(task_ID)_all", array(
+            "data_type" => "integer",
+            "expression" => array("SUM(%s)", "cnt(task_ID)"),
+        )
+    )
     ->registerRuntimeField("sum(task_PRICE)_F_all", array(
             "data_type" => "float",
             'expression' => ['SUM(%s)', 'sum(task_PRICE)_F']
@@ -102,8 +112,13 @@ $subQuery
             'expression' => ['SUM(%s)', 'sum(task_PRICE)_P']
         )
     )
+    //->setGroup(array(/*"CLIENT_ID","ORM_TASK_client_NAME"*/))
+    ->setGroup(array("CLIENT_ID","ORM_TASK_client_NAME"))
+    //->setSelect(array(/*"CLIENT_ID", "ORM_TASK_client_NAME",*/ "sum(task_PRICE)_P_all", "sum(task_PRICE)_F_all", "cnt(task_ID)_all"))
+    ->setSelect(array("CLIENT_ID", "ORM_TASK_client_NAME", "sum(task_PRICE)_P_all", "sum(task_PRICE)_F_all", "cnt(task_ID)_all"))
 ;
-$result = $query->exec();
+//$outerQuery->dump();
+$result = $outerQuery->exec();
 var_dump($result->fetchAll());
 
 //$query->dump();
