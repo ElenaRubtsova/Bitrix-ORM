@@ -6,6 +6,7 @@ use Bitrix\Main\Entity,
     Bitrix\Main\ORM\Fields\FloatField,
     Bitrix\Main\ORM\Fields\IntegerField,
     Bitrix\Main\ORM\Fields\StringField;
+use Bitrix\Main\Entity\Query;
 
 //$task = new ORM\TaskTable();
 //echo $task->getTableName();
@@ -14,7 +15,7 @@ use Bitrix\Main\Entity,
 //\Pixelplus\OrmAnnotations\Handlers::registerHandler();
 
 // создаём сущность для нашего запроса, в которой будет храниться результат
-/*$fields = array(
+$fields = array(
     new IntegerField(
         'ID', [
             'title' => 'ID клиента',
@@ -44,14 +45,14 @@ use Bitrix\Main\Entity,
 $entity = Bitrix\Main\ORM\Entity::compileEntity(
     "ResultTable",
     $fields, [
-        'namespace' => 'ORM/Results',
-        'table_name' => 'r_task_status_client',
+        //'namespace' => 'ORM/Results',
+        //'table_name' => 'r_task_status_client',
     ]
-);*/
+);
 
 // создаем объект Query. В качестве параметра он принимает объект сущности, относительно которой мы строим запрос
-$query = new Entity\Query(ORM\TaskTable::getEntity());
-$query
+$subQuery = new Query(ORM\TaskTable::getEntity());
+$subQuery
     ->registerRuntimeField("client", array(
             "data_type" => "ORM\ClientTable",
             'reference' => [
@@ -68,6 +69,16 @@ $query
             'join_type' => 'INNER',
         )
     )
+    /*->registerRuntimeField("CLIENT_ID", array(
+            "data_type" => "integer",
+            "expression" => array("%s", "CLIENT_ID"),
+        )
+    )
+    ->registerRuntimeField("ORM_TASK_client_NAME", array(
+            "data_type" => "string",
+            "expression" => array("%s", "client.NAME"),
+        )
+    )*/
     ->registerRuntimeField("cnt(task_ID)", array(
             "data_type" => "integer",
             "expression" => array("COUNT(%s)", "ID"),
@@ -88,13 +99,22 @@ $query
     ->setFilter(array("=CLIENT_ID" => 1))
     ->setOrder(array("CLIENT_ID" => "ASC"))
     ->setLimit(10);
-$result = $query->exec();
+/*$subQuerySql = $subQuery->getQuery();
+$query = new Query($entity);
+$query
+    ->registerRuntimeField('ttt', [
+        'expression' => ['(' . $subQuerySql . ')', 'ID']
+    ])
+    ->setSelect(array("ttt"))
+;*/
+$result = $subQuery->exec();
 var_dump($result->fetchAll());
+
 //query2
 //->setGroup(array("CLIENT_ID","client.NAME","sum(task_PRICE)_P","sum(task_PRICE)_F","cnt(task_ID)"))
 //т.к. здесь оно будет уже не вычислчяемым SUM("sum(task_PRICE)_F")
 //$querySql = $query->getQuery();
-$outerQuery = new Entity\Query(Bitrix\Main\ORM\Entity::getInstanceByQuery($query));
+$outerQuery = new Query(Bitrix\Main\ORM\Entity::getInstanceByQuery($subQuery));
 //$outerQuery->dump();
 $outerQuery
     ->registerRuntimeField("cnt(task_ID)_all", array(
