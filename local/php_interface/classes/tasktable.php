@@ -10,7 +10,6 @@ use Bitrix\Main\Localization\Loc,
     Bitrix\Main\ORM\Fields\Validators\LengthValidator;
 
 Loc::loadMessages(__FILE__);
-//echo __FILE__;
 
 /**
  * Class TaskTable
@@ -75,16 +74,6 @@ class TaskTable extends DataManager
                     'required' => true,
                     'title' => Loc::getMessage('TASK_ENTITY_CLIENT_ID_FIELD')
                 ]
-                /*,for getList()
-                'runtime' => [
-                    'PROPERTY_LIST' => [
-                        'data_type' => $entityPropertyList->getDataClass(),
-                        'reference' => [
-                            '=this.ID' => 'ref.IBLOCK_ID',
-                        ],
-                        'join_type' => 'left'
-                    ]
-                ]*/
             ),
             new IntegerField(
                 'STATUS_ID',
