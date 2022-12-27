@@ -1,14 +1,108 @@
 <?
-require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
-use ORM\TaskTable;
-$obj = new TaskTable();
-echo $obj->getTableName();
+
+require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
+
+use Bitrix\Main\Entity,
+    Bitrix\Main\ORM\Fields\FloatField,
+    Bitrix\Main\ORM\Fields\IntegerField,
+    Bitrix\Main\ORM\Fields\StringField;
+
+//$task = new ORM\TaskTable();
+//echo $task->getTableName();
+//echo $task->get();
+//echo('1');
+//\Pixelplus\OrmAnnotations\Handlers::registerHandler();
+
+// создаём сущность для нашего запроса, в которой будет храниться результат
+$fields = array(
+    new IntegerField(
+        'ID', [
+            'title' => 'ID клиента',
+        ]
+    ),
+    new StringField(
+        'NAME', [
+            'title' => 'Имя клиента',
+        ]
+    ),
+    new FloatField(
+        'SUM_F', [
+            'title' => 'Сумма по задачам в статусе "Выполнено"',
+        ]
+    ),
+    new FloatField(
+        'SUM_P', [
+            'title' => 'Сумма по задачам в статусе "В процессе"',
+        ]
+    ),
+    new IntegerField(
+        'COUNT', [
+            'title' => 'Общее количество задач клиента',
+        ]
+    ),
+);
+$entity = Bitrix\Main\ORM\Entity::compileEntity(
+    "ResultTable",
+    $fields, [
+        'namespace' => 'AlexeyGfi',
+        'table_name' => $dbTableName,
+    ]
+);
+
+// создаем объект Query. В качестве параметра он принимает объект сущности, относительно которой мы строим запрос
+$query = new Entity\Query(ORM\ClientTable::getEntity());
+$query
+    // поле element как ссылка на таблицу px_task
+    ->registerRuntimeField("task", array(
+            // тип - сущность ElementTable
+            "data_type" => "ORM\TaskTable",
+            // обратите внимание, что this.ID относится к таблице, относительно которой строится запрос
+            // т.е. px_client.ID = px_task.CLIENT_ID
+            'reference' => array('=this.ID' => 'ref.CLIENT_ID'),
+            'join_type' => 'inner',
+        )
+    )
+    ->registerRuntimeField("status", array(
+            "data_type" => "ORM\StatusTable",
+            'reference' => array('=task.STATUS_ID' => 'ref.ID'),
+        )
+    )
+    //->setSelect(array("ID", "NAME", "task", "task.NAME", "status.NAME"))
+    ->setSelect(array("IF(ID>1,ID,0)", "NAME", "task", "task.NAME", "status.NAME"))
+    //->setFilter(array("<ID" => 100))
+    ->setOrder(array("ID" => "ASC"))
+    /*->registerRuntimeField(new Reference(
+        'FIELD',
+        $var,
+        Join::on('this.ID', 'ref.CLIENT_ID')
+    ))*///new style (d7)
+    ->setLimit(10);
+$result = $query->exec();
+var_dump($result->fetchAll());
+
+//$query->dump();
+/*
+//problem in COUNT()
+$taskList = TaskTable::getList(
+    array(
+        'select' => array('COUNT(ID)', 'CLIENT_ID','SUM(PRICE)'), // имена полей, которые необходимо получить
+        //'filter' => array('=ID' => 1), // описание фильтра для WHERE и HAVING
+        'group' => array('CLIENT_ID'), // явное указание полей, по которым нужно группировать результат
+        //'order' => array('CLIENT_ID' => 'DESC', 'ID' => 'ASC'), // параметры сортировки
+        'limit' => 10, // количество записей
+        'offset' => 0, // смещение для limit
+        //'runtime' => array(new Entity\ExpressionField('CNT', 'COUNT(*)')), // динамически определенные поля
+    ),
+);
+var_dump($taskList);
+*/
 //var_dump($obj->getMap());
 //$map = TaskTable::getTableName();
 //var_dump($map);
+
 ?>
 
-<!--
+    <!--
 global $DB;
 $results = $DB->Query("SELECT client.ID, 
  client.NAME, 
@@ -29,7 +123,8 @@ GROUP BY client.ID, client.NAME
             <th>Сумма по задачам в статусе "В процессе"</th>
             <th>Общее количество задач клиента</th>
         </tr>
-        <? while ($row = $results->Fetch()) { ?>
+        <?
+    while ($row = $results->Fetch()) { ?>
             <tr>
                 <td><?= $row['ID'] ?></td>
                 <td><?= $row['NAME'] ?></td>
@@ -37,6 +132,8 @@ GROUP BY client.ID, client.NAME
                 <td><?= $row['sum_f'] ?></td>
                 <td><?= $row['TASK_COUNT'] ?></td>
             </tr>
-        <? } ?>
+        <?
+    } ?>
     </table>-->
-<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>
+<?
+require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/footer.php"); ?>

@@ -1,7 +1,11 @@
 {
   "autoload": {
     "psr-4": {
-      "ORM\\": "classes/"
+      "ORM\\": "classes/",
+      "Pixelplus\\OrmAnnotations\\": "classes/pixelplus/orm/annotations/"
     }
+  },
+  "require": {
+    "composer/composer": "^2.5"
   }
 }
