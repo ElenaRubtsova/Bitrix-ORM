@@ -30,4 +30,5 @@ ID клиента
 Общее количество задач клиента
 
 Вывод на тестовом сервере:
+
 ![image](https://user-images.githubusercontent.com/79009508/217584068-537f7fb8-d1eb-4842-9fac-a43fa72ef26b.png)
